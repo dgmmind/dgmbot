@@ -3,6 +3,7 @@ import { Answer } from "./Answer.js"
 import { Analyzer } from "./Analyzer.js"
 import { Context } from "./Context.js"
 import { Memo } from "./Memo.js"
+
 export class Manager {
     database
     BlackList
@@ -12,6 +13,11 @@ export class Manager {
     ContextReference = Context
     Analyzer = new Analyzer([])
     events = []
+
+    // ✅ NUEVO: Sistema de timeout para flows inactivos
+    flowTimeouts = new Map() // Almacena los timeouts activos
+    inactivityTimeout = 5 * 60 * 1000 // 5 minutos en milisegundos
+
     setDatabase(database) {
         this.database = database
     }
@@ -41,28 +47,88 @@ export class Manager {
         this.WhiteList = wl
         return this
     }
+
+    // ✅ NUEVO: Configurar tiempo de inactividad
+    setInactivityTimeout = (minutes) => {
+        this.inactivityTimeout = minutes * 60 * 1000
+        return this
+    }
+
+    // ✅ NUEVO: Iniciar timeout para un flow
+    startFlowTimeout = (jid) => {
+        // Limpiar timeout anterior si existe
+        this.clearFlowTimeout(jid)
+
+        const timeoutId = setTimeout(() => {
+            console.log(`⏰ Flow timeout para ${jid} - Limpiando por inactividad`)
+            this.cleanupInactiveFlow(jid)
+        }, this.inactivityTimeout)
+
+        this.flowTimeouts.set(jid, timeoutId)
+        console.log(`⏱️ Timeout iniciado para ${jid} (${this.inactivityTimeout / 1000 / 60} minutos)`)
+    }
+
+    // ✅ NUEVO: Limpiar timeout de un flow
+    clearFlowTimeout = (jid) => {
+        const timeoutId = this.flowTimeouts.get(jid)
+        if (timeoutId) {
+            clearTimeout(timeoutId)
+            this.flowTimeouts.delete(jid)
+            console.log(`🔄 Timeout cancelado para ${jid}`)
+        }
+    }
+
+    // ✅ NUEVO: Limpiar flow inactivo
+    cleanupInactiveFlow = async (jid) => {
+        const flow = this.Flows.get(jid)
+        if (flow) {
+            console.log(`🧹 Limpiando flow inactivo: ${flow.flowName} para ${jid}`)
+
+            // Enviar mensaje de timeout al usuario
+            await this.SocketConnection?.sendMessage(jid, {
+                text: "⏰ *Tiempo agotado*\n\nLa conversación ha sido cerrada por inactividad.\nEscribe *hola* para comenzar de nuevo.",
+            })
+
+            // Limpiar flow y memoria
+            this.Flows.delete(jid)
+            this.Memo.reset(jid)
+            this.clearFlowTimeout(jid)
+        }
+    }
+
+    // ✅ NUEVO: Reiniciar timeout cuando hay actividad
+    resetFlowTimeout = (jid) => {
+        if (this.Flows.has(jid)) {
+            this.startFlowTimeout(jid)
+        }
+    }
+
     haveReset = (jid, context) => {
         const flow = this.Flows.get(jid)
-        if (!flow) {
-            return
-        }
+        if (!flow) return
         const haveNext = flow.getNext()
         if (!haveNext) {
             if (!flow.nextFlow) {
                 this.Memo.reset(jid)
+                this.clearFlowTimeout(jid) // ✅ Limpiar timeout al terminar
                 return this.Flows.delete(jid)
             }
             this.Flows.set(jid, flow.nextFlow.copy())
+            this.startFlowTimeout(jid) // ✅ Reiniciar timeout para nuevo flow
             return this.FlowQueue(context)
         }
         flow.CurrentAnswer++
+        this.startFlowTimeout(jid) // ✅ Reiniciar timeout en cada paso
         this.FlowQueue(context)
     }
+
     moveToStep = (jid, step) => {
         const flow = this.Flows.get(jid)
         flow.skipToStep(step)
         this.Flows.set(jid, flow)
+        this.resetFlowTimeout(jid) // ✅ Reiniciar timeout al mover paso
     }
+
     SocketConnection
     Flows = new Map()
     attach = (whatsapp_context) => {
@@ -91,6 +157,7 @@ export class Manager {
             }
             this.Flows.delete(jid)
             this.Memo.reset(jid)
+            this.clearFlowTimeout(jid) // ✅ Limpiar timeout
             return false
         }
         return false
@@ -108,6 +175,7 @@ export class Manager {
         const newFlow = flow.copy()
         newFlow.CurrentAnswer = -1
         this.Flows.set(jid, newFlow)
+        this.startFlowTimeout(jid) // ✅ Iniciar timeout para nuevo flow
         // Ejecutar inmediatamente el nuevo flow
         this.executeFlow(jid)
     }
@@ -138,6 +206,7 @@ export class Manager {
             } else {
                 this.Flows.delete(jid)
                 this.Memo.reset(jid)
+                this.clearFlowTimeout(jid) // ✅ Limpiar timeout
             }
         }
     }
@@ -148,10 +217,16 @@ export class Manager {
         if (!this.someEvent(context.messages[0])) return
         if (this.BlackList && this.BlackList.get(cellPhone)) return
         if (this.WhiteList && this.WhiteList.get(cellPhone)) return
-        // @ts-ignore
+
         let flow = this.Flows.get(cellPhone)
         // if the message had sent by us, we don't make anything
         if (!message || context.messages[0].key.fromMe) return
+
+        // ✅ NUEVO: Reiniciar timeout cuando hay actividad del usuario
+        if (flow) {
+            this.resetFlowTimeout(cellPhone)
+        }
+
         // if the flow wasn't found we will create one with the analyzer class
         if (!flow) {
             const FlowFount = this.Analyzer.parse(message)
@@ -159,8 +234,8 @@ export class Manager {
                 return this.SocketConnection?.sendMessage(cellPhone, { text: this.FlowNotFountMessage })
             if (!FlowFount) return
             this.Flows.set(cellPhone, FlowFount)
+            this.startFlowTimeout(cellPhone) // ✅ Iniciar timeout para nuevo flow
             console.log(`Entering in flow ${FlowFount.flowName}`)
-            // @ts-ignore
             flow = this.Flows.get(cellPhone)
         }
         await this.FlowQueue(context)
@@ -184,19 +259,12 @@ export class Manager {
             if (nanswer.waitForAnswer && !flow.AreWeWaiting) {
                 flow.AreWeWaiting = true
                 this.Flows.set(jid, flow)
+                this.startFlowTimeout(jid) // ✅ Iniciar timeout mientras espera respuesta
                 console.log(this.Flows.get(jid))
                 return
             }
             if (nanswer.waitForAnswer && flow.AreWeWaiting) {
-                const response = nanswer.handler(
-                    new this.ContextReference(
-                        context.messages[0],
-                        // @ts-ignore
-                        this.SocketConnection,
-                        // this is the flow instance :D
-                        flow,
-                    ),
-                )
+                const response = nanswer.handler(new this.ContextReference(context.messages[0], this.SocketConnection, flow))
                 if (response instanceof Promise) {
                     return response.then(() => {
                         flow.AreWeWaiting = false
@@ -209,14 +277,7 @@ export class Manager {
                 this.haveReset(jid, context)
             }
             if (!nanswer.waitForAnswer) {
-                const response = nanswer.handler(
-                    new this.ContextReference(
-                        context.messages[0],
-                        // @ts-ignore
-                        this.SocketConnection,
-                        flow,
-                    ),
-                )
+                const response = nanswer.handler(new this.ContextReference(context.messages[0], this.SocketConnection, flow))
                 if (response instanceof Promise) {
                     await response.then()
                 }

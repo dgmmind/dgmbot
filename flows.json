@@ -1,0 +1,175 @@
+{
+  "flows": [
+    {
+      "name": "FlowSaludo",
+      "displayName": "Saludo Inicial",
+      "keywords": [
+        "hola",
+        "hello",
+        "hi"
+      ],
+      "answers": [
+        {
+          "type": "text",
+          "content": "👋 ¡Bienvenido a soy Jorge de *Humansisu*!"
+        },
+        {
+          "type": "text",
+          "content": "Seleccione una opción para continuar:\n1. Estoy buscando *empleo* o escriba *1*\n2. Soy una *empresa* que desea reclutar o escriba *2*"
+        },
+        {
+          "type": "selector",
+          "waitForAnswer": true,
+          "options": [
+            {
+              "keywords": [
+                "empleo",
+                "1",
+                "trabajo"
+              ],
+              "nextFlow": "FlowEmployees"
+            },
+            {
+              "keywords": [
+                "empresa",
+                "reclutar",
+                "2"
+              ],
+              "nextFlow": "FlowBusiness"
+            }
+          ],
+          "errorMessage": "Por favor, escribe *empleo* o *empresa* para continuar."
+        }
+      ],
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "name": "FlowEmployees",
+      "displayName": "Registro de Empleados",
+      "keywords": [],
+      "answers": [
+        {
+          "type": "text",
+          "content": "Perfecto, estás en el flujo para *personas que buscan empleo*."
+        },
+        {
+          "type": "text",
+          "content": "Primero, ¿cuál es tu nombre completo?"
+        },
+        {
+          "type": "input",
+          "waitForAnswer": true,
+          "memoKey": "fullname",
+          "nextMessage": "¿Cuál es tu DNI?"
+        },
+        {
+          "type": "input",
+          "waitForAnswer": true,
+          "memoKey": "dni",
+          "nextMessage": "¿Cuál es tu número de teléfono?"
+        },
+        {
+          "type": "input",
+          "waitForAnswer": true,
+          "memoKey": "phone",
+          "nextMessage": "¿Cuál es tu correo electrónico?"
+        },
+        {
+          "type": "input",
+          "waitForAnswer": true,
+          "memoKey": "email",
+          "nextMessage": "¿Qué idioma hablas?"
+        },
+        {
+          "type": "input",
+          "waitForAnswer": true,
+          "memoKey": "language",
+          "nextMessage": "¿Cuál es tu dirección exacta?"
+        },
+        {
+          "type": "input",
+          "waitForAnswer": true,
+          "memoKey": "address",
+          "nextMessage": "✅ Procesando tus datos..."
+        },
+        {
+          "type": "summary",
+          "content": "📝 *Resumen de tu registro en Humansisu*:\n- Nombre completo: {fullname}\n- DNI: {dni}\n- Teléfono: {phone}\n- Correo: {email}\n- Idioma: {language}\n- Dirección: {address}\n\n✅ ¡Gracias por confiar en Humansisu! Pronto nos pondremos en contacto contigo."
+        }
+      ],
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "name": "FlowBusiness",
+      "displayName": "Registro de Empresas",
+      "keywords": [],
+      "answers": [
+        {
+          "type": "text",
+          "content": "Excelente, estás en el flujo para *empresas que desean reclutar*."
+        },
+        {
+          "type": "text",
+          "content": "A continuación solicitaremos algunos datos:\n1. RTN\n2. Nombre de la empresa\n3. Correo\n4. Cantidad de empleados\n5. Rubro"
+        },
+        {
+          "type": "text",
+          "content": "¿Cuál es su RTN?"
+        },
+        {
+          "type": "input",
+          "waitForAnswer": true,
+          "memoKey": "rtn",
+          "nextMessage": "¿Cuál es el nombre de la empresa?"
+        },
+        {
+          "type": "input",
+          "waitForAnswer": true,
+          "memoKey": "company_name",
+          "nextMessage": "¿Cuál es el correo de contacto?"
+        },
+        {
+          "type": "input",
+          "waitForAnswer": true,
+          "memoKey": "company_email",
+          "nextMessage": "¿Cuántos empleados tienen aproximadamente?"
+        },
+        {
+          "type": "input",
+          "waitForAnswer": true,
+          "memoKey": "company_size",
+          "nextMessage": "¿Cuál es el rubro de la empresa?"
+        },
+        {
+          "type": "input",
+          "waitForAnswer": true,
+          "memoKey": "sector",
+          "nextMessage": "✅ Procesando la información de su empresa..."
+        },
+        {
+          "type": "summary",
+          "content": "📝 *Resumen del registro de su empresa en Humansisu*:\n- RTN: {rtn}\n- Empresa: {company_name}\n- Correo: {company_email}\n- Nº de empleados: {company_size}\n- Rubro: {sector}\n\n✅ ¡Gracias por confiar en Humansisu! Pronto un asesor lo contactará."
+        }
+      ],
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "name": "FlowHelp",
+      "displayName": "Flow de Ayuda",
+      "keywords": [
+        "help"
+      ],
+      "answers": [
+        {
+          "type": "text",
+          "content": "escribe empresa o empleo"
+        }
+      ],
+      "createdAt": "2025-07-12T08:22:30.423Z",
+      "updatedAt": "2025-07-12T08:22:30.423Z"
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fondo Nebulosa Centrado</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: sans-serif;
+        }
+
+        .container {
+            position: relative;
+            min-height: 100vh;
+            width: 100%;
+            background-color: black;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nebula-bg {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            /*background:*/
+            /*        radial-gradient(*/
+            /*                ellipse 80% 60% at 50% 0%,*/
+            /*                rgba(236, 72, 153, 0.3),*/
+            /*                transparent 70%*/
+            /*        ),*/
+            /*        black; !* fondo base *!*/
+            /*background:*/
+            /*        radial-gradient(*/
+            /*                ellipse 80% 60% at 50% 0%,*/
+            /*                rgba(34, 197, 94, 0.25),*/
+            /*                transparent 70%*/
+            /*        ),*/
+            /*        #000000;*/
+            background: radial-gradient(
+                    125% 125% at 50% 90%,
+                    #000000 40%,
+                    #072607 100%
+            );
+        }
+
+        .content {
+            position: relative;
+            z-index: 10;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- Fondo degradado nebulosa -->
+    <div class="nebula-bg"></div>
+
+    <!-- Contenido centrado -->
+    <div class="content">
+
+        <h1>🌌 Bienvenido al Universo Digital</h1>
+        <p>Este fondo tipo nebulosa está centrado y estilizado con un degradado radial magenta.</p>
+        <video autoplay="" loop="" muted="" playsinline="" src="https://resend.com/static/landing-page/3d-control.mp4">
+            Tu navegador no soporta el elemento de video.
+        </video>
+    </div>
+</div>
+</body>
+</html>

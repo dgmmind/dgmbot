@@ -7,7 +7,7 @@ import {
 import { Manager } from './Flow/Manager.js';
 import PINO from "pino";
 import qrcode from "qrcode-terminal";
-import { FlowSaludo } from "./Conversations/index.js"
+import { FlowSaludo } from "./Conversations/app.js"
 class BaileyClient {
     constructor() {
         this.DIR_SESSION = `Sessions/auth`;
@@ -67,6 +67,7 @@ const bailey = new BaileyClient();
 bailey.connect().then(() => {});
 
 const manager = Manager.getInstance()
+manager.setInactivityTimeout(1)
 
 // Setting
 manager.useEventDisabler("conversation")
