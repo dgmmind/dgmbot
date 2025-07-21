@@ -67,7 +67,7 @@ const bailey = new BaileyClient();
 bailey.connect().then(() => {});
 
 const manager = Manager.getInstance()
-manager.setInactivityTimeout(1)
+manager.setInactivityTimeout(10)
 
 // Setting
 manager.useEventDisabler("conversation")
