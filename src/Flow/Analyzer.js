@@ -21,7 +21,7 @@ export class Analyzer {
                         if (key.sensitive && key.key === message) {
                             return flow.copy();
                         }
-                        if (key.key.toLowerCase() === message.toLowerCase()) {
+                        if (!key.sensitive && key.key.toLowerCase() === message.toLowerCase()) {
                             return flow.copy();
                         }
                     }
